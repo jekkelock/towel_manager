@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Admin Login</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_login') }}" class="vstack gap-2">
+          <label class="form-label mb-0">Password</label>
+          <input class="form-control" type="password" name="password" required autofocus>
+          <button class="btn btn-dark mt-2" type="submit">Enter Admin Panel</button>
+        </form>
+        <p class="small text-muted mt-3 mb-0">
+          Simple internal password gate (not intended as high-security authentication).
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

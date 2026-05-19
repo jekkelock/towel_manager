@@ -1,0 +1,25 @@
+services:
+  towel-manager-client:
+    build: .
+    container_name: towel_manager_client
+    ports:
+      - "5000:5000"
+    environment:
+      - APP_MODE=client
+      - PORT=5000
+    volumes:
+      - ./instance:/app/instance
+    restart: unless-stopped
+
+  towel-manager-admin:
+    build: .
+    container_name: towel_manager_admin
+    ports:
+      - "5001:5001"
+    environment:
+      - APP_MODE=admin
+      - PORT=5001
+      - ADMIN_PASSWORD=1234
+    volumes:
+      - ./instance:/app/instance
+    restart: unless-stopped

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header">Choose Department</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('select_department') }}" class="vstack gap-3 touch-ui">
+          <label class="form-label mb-0">Department</label>
+          <select class="form-select touch-control" name="department_id" required autofocus>
+            {% for dep in departments %}
+            <option value="{{ dep.id }}">{{ dep.name }} ({{ dep.code }})</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-primary touch-btn mt-2" type="submit">Enter Client Screen</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

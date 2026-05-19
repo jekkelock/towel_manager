@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if app_mode == "admin" %}Admin{% else %}Client{% endif %} - Towel Manager</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    >
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body class="{% if app_mode == 'admin' and admin_dark_mode %}admin-dark{% else %}bg-light{% endif %}">
+    <main class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h3 mb-0">
+          Hotel Towel Manager
+          <span class="badge text-bg-dark align-middle ms-1">
+            {% if app_mode == "admin" %}Admin{% else %}Client{% endif %}
+          </span>
+        </h1>
+        {% if app_mode == "admin" and admin_authenticated %}
+        <div class="d-flex gap-2">
+          <form method="post" action="{{ url_for('admin_toggle_theme') }}">
+            <button class="btn btn-outline-dark btn-sm" type="submit">
+              {% if admin_dark_mode %}Light{% else %}Dark{% endif %} Mode
+            </button>
+          </form>
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('export_csv') }}">Export CSV</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('export_pdf') }}">Export PDF</a>
+          <form method="post" action="{{ url_for('admin_logout') }}">
+            <button class="btn btn-outline-danger btn-sm" type="submit">Logout</button>
+          </form>
+        </div>
+        {% elif app_mode == "client" and selected_department %}
+        <div class="d-flex gap-2">
+          <span class="btn btn-outline-dark btn-sm disabled">
+            {{ selected_department.name }}
+          </span>
+          <form method="post" action="{{ url_for('department_logout') }}">
+            <button class="btn btn-outline-danger btn-sm" type="submit">Change Department</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert {% if category == 'error' %}alert-danger{% else %}alert-success{% endif %} py-2">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+    {% if app_mode == "client" and selected_department %}
+    <div class="scroll-controls" id="scroll-controls">
+      <button type="button" class="scroll-btn" data-scroll="up" aria-label="Scroll up">UP</button>
+      <button type="button" class="scroll-btn" data-scroll="down" aria-label="Scroll down">DOWN</button>
+    </div>
+    <div class="numpad" id="numpad">
+      <div class="numpad-grid">
+        <button type="button" data-key="1">1</button>
+        <button type="button" data-key="2">2</button>
+        <button type="button" data-key="3">3</button>
+        <button type="button" data-key="4">4</button>
+        <button type="button" data-key="5">5</button>
+        <button type="button" data-key="6">6</button>
+        <button type="button" data-key="7">7</button>
+        <button type="button" data-key="8">8</button>
+        <button type="button" data-key="9">9</button>
+        <button type="button" data-key="-">-</button>
+        <button type="button" data-key="0">0</button>
+        <button type="button" data-action="backspace">DEL</button>
+        <button type="button" data-key=",">,</button>
+        <button type="button" data-key=".">.</button>
+        <button type="button" data-key="00">00</button>
+        <button type="button" data-action="clear">CLR</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        let activeInput = null;
+        const targets = document.querySelectorAll(".numpad-target");
+        const keypad = document.getElementById("numpad");
+        if (!keypad || targets.length === 0) return;
+
+        targets.forEach((input) => {
+          input.addEventListener("focus", () => {
+            activeInput = input;
+          });
+          input.addEventListener("click", () => {
+            activeInput = input;
+          });
+        });
+
+        keypad.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("mousedown", (event) => event.preventDefault());
+          button.addEventListener("click", () => {
+            if (!activeInput) return;
+            const action = button.dataset.action;
+            const key = button.dataset.key || "";
+
+            if (action === "clear") {
+              activeInput.value = "";
+              activeInput.dispatchEvent(new Event("input", { bubbles: true }));
+              return;
+            }
+            if (action === "backspace") {
+              const start = activeInput.selectionStart ?? activeInput.value.length;
+              const end = activeInput.selectionEnd ?? activeInput.value.length;
+              if (start !== end) {
+                activeInput.value = activeInput.value.slice(0, start) + activeInput.value.slice(end);
+                activeInput.setSelectionRange(start, start);
+              } else if (start > 0) {
+                activeInput.value = activeInput.value.slice(0, start - 1) + activeInput.value.slice(end);
+                activeInput.setSelectionRange(start - 1, start - 1);
+              }
+              activeInput.dispatchEvent(new Event("input", { bubbles: true }));
+              return;
+            }
+
+            const start = activeInput.selectionStart ?? activeInput.value.length;
+            const end = activeInput.selectionEnd ?? activeInput.value.length;
+            activeInput.value = activeInput.value.slice(0, start) + key + activeInput.value.slice(end);
+            const cursor = start + key.length;
+            activeInput.setSelectionRange(cursor, cursor);
+            activeInput.dispatchEvent(new Event("input", { bubbles: true }));
+          });
+        });
+      })();
+
+      (function () {
+        const controls = document.getElementById("scroll-controls");
+        if (!controls) return;
+        controls.querySelectorAll(".scroll-btn").forEach((button) => {
+          button.addEventListener("click", () => {
+            const direction = button.dataset.scroll;
+            const delta = direction === "up" ? -500 : 500;
+            window.scrollBy({ top: delta, behavior: "smooth" });
+          });
+        });
+      })();
+    </script>
+    {% endif %}
+  </body>
+</html>

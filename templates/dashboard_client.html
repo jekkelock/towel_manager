@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">Available Clean Towels</h2>
+        <p class="display-6 mb-0">{{ department.towel_stock }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">Given Out Towels</h2>
+        <p class="display-6 mb-0">{{ given_out_towels }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">Open Deposits</h2>
+        <p class="display-6 mb-0">EUR {{ total_open_deposit }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">Deposit per Towel</h2>
+        <p class="display-6 mb-0">EUR {{ towel_deposit }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 touch-ui">
+  <div class="col-xl-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header">Issue Towels</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('issue_towels') }}" class="vstack gap-3">
+          <label class="form-label mb-0">Room number</label>
+          <input class="form-control touch-control numpad-target" type="text" inputmode="numeric" name="room_number" required>
+          <label class="form-label mb-0">Towel count</label>
+          <input class="form-control touch-control numpad-target" type="text" inputmode="numeric" name="towel_count" required>
+          <label class="form-label mb-0">Voucher numbers (comma or dot separated)</label>
+          <input class="form-control touch-control numpad-target" type="text" name="voucher_numbers" placeholder="100,101,102" required>
+          <p class="small text-muted mb-0">
+            Available: {{ available_voucher_numbers|join(", ") }}
+          </p>
+          <button class="btn btn-primary touch-btn mt-2" type="submit">Issue Towels</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header">Return Towels + Vouchers</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('return_towels') }}" class="vstack gap-3">
+          <label class="form-label mb-0">Open rental</label>
+          <select class="form-select touch-control" name="rental_id" required>
+            {% for rental in open_rentals %}
+            <option value="{{ rental.id }}">
+              #{{ rental.id }} Room {{ rental.room_number }} / {{ rental.department.name }} / {{ rental.towel_count }} towels
+            </option>
+            {% endfor %}
+          </select>
+          <label class="form-label mb-0">Returned voucher numbers (partial allowed)</label>
+          <input class="form-control touch-control numpad-target" type="text" name="voucher_numbers" placeholder="100" required>
+          <button class="btn btn-success touch-btn mt-2" type="submit">Process Return + Refund</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header">Add Clean Towels (+/-)</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('adjust_stock') }}" class="vstack gap-3">
+          <label class="form-label mb-0">Quantity to add/remove</label>
+          <input class="form-control touch-control numpad-target" type="text" inputmode="numeric" name="quantity" required>
+          <button class="btn btn-outline-primary touch-btn mt-2" type="submit">Update Clean Towels</button>
+          <p class="small text-muted mb-0">Use positive to add clean towels, negative to remove.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3 shadow-sm">
+  <div class="card-header">Open Rentals</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Room</th>
+          <th>Department</th>
+          <th>Towels</th>
+          <th>Deposit</th>
+          <th>Vouchers</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rental in open_rentals %}
+        <tr>
+          <td>{{ rental.id }}</td>
+          <td>{{ rental.room_number }}</td>
+          <td>{{ rental.department.name }}</td>
+          <td>{{ rental.towel_count }}</td>
+          <td>EUR {{ rental.deposit_total }}</td>
+          <td>{{ rental.voucher_numbers()|join(", ") }}</td>
+          <td>{{ rental.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">No open rentals.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

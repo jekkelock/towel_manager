@@ -1,0 +1,166 @@
+:root {
+  --numpad-width: clamp(180px, 20vw, 300px);
+}
+
+body {
+  min-height: 100vh;
+}
+
+body.admin-dark {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+body.admin-dark .card,
+body.admin-dark .list-group-item,
+body.admin-dark .form-control,
+body.admin-dark .form-select,
+body.admin-dark .table {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  border-color: #374151;
+}
+
+body.admin-dark .card-header,
+body.admin-dark .card-footer,
+body.admin-dark .table th,
+body.admin-dark .table td {
+  background-color: #111827;
+  color: #e5e7eb;
+  border-color: #374151;
+}
+
+body.admin-dark .text-muted {
+  color: #9ca3af !important;
+}
+
+body.admin-dark .btn-outline-dark,
+body.admin-dark .btn-outline-secondary {
+  color: #e5e7eb;
+  border-color: #6b7280;
+}
+
+body.admin-dark .btn-outline-dark:hover,
+body.admin-dark .btn-outline-secondary:hover {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+main.container {
+  max-width: none;
+  width: calc(100vw - (var(--numpad-width) + 150px));
+  margin-left: 0;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 8px;
+  padding-bottom: 20px;
+}
+
+.voucher-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.touch-ui .touch-control {
+  min-height: 56px;
+  font-size: 1.2rem;
+}
+
+.touch-ui .touch-btn {
+  min-height: 90px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  border-radius: 0;
+}
+
+.numpad {
+  position: fixed;
+  top: auto;
+  right: 0;
+  bottom: 0;
+  width: var(--numpad-width);
+  background: #ffffff;
+  border-left: 2px solid #dee2e6;
+  padding: 12px 10px;
+  z-index: 999;
+}
+
+.numpad-grid {
+  max-width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.numpad button {
+  min-height: 64px;
+  border: 1px solid #ced4da;
+  border-radius: 0;
+  background: #f8f9fa;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.scroll-controls {
+  position: fixed;
+  right: calc(var(--numpad-width) + 14px);
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.scroll-btn {
+  width: 100px;
+  height: 100px;
+  border: 1px solid #adb5bd;
+  border-radius: 0;
+  background: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+@media (max-width: 991px) {
+  main.container {
+    width: auto;
+    max-width: 100%;
+    margin-right: auto;
+    padding-right: 12px;
+    padding-bottom: 220px;
+  }
+
+  .numpad {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    border-left: 0;
+    border-top: 2px solid #dee2e6;
+    padding: 10px;
+  }
+
+  .numpad-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .numpad button {
+    min-height: 52px;
+    font-size: 1.05rem;
+  }
+
+  .scroll-controls {
+    right: 10px;
+    bottom: 230px;
+  }
+
+  .scroll-btn {
+    width: 82px;
+    height: 82px;
+  }
+}

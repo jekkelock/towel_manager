@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6">Open Towels</h2>
+        <p class="display-6 mb-0">{{ total_open_towels }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6">Open Deposits</h2>
+        <p class="display-6 mb-0">EUR {{ total_open_deposit }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6">Deposit per Towel</h2>
+        <p class="display-6 mb-0">EUR {{ towel_deposit }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Issue Towels</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('issue_towels') }}" class="vstack gap-2">
+          <label class="form-label mb-0">Room number</label>
+          <input class="form-control" type="number" name="room_number" required>
+          <label class="form-label mb-0">Department</label>
+          <select class="form-select" name="department_id" required>
+            {% for dep in departments %}
+            <option value="{{ dep.id }}">{{ dep.name }} ({{ dep.code }})</option>
+            {% endfor %}
+          </select>
+          <label class="form-label mb-0">Towel count</label>
+          <input class="form-control" type="number" min="1" name="towel_count" required>
+          <button class="btn btn-primary mt-2" type="submit">Issue</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Return Towels + Vouchers</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('return_towels') }}" class="vstack gap-2">
+          <label class="form-label mb-0">Open rental</label>
+          <select class="form-select" name="rental_id" required>
+            {% for rental in open_rentals %}
+            <option value="{{ rental.id }}">
+              #{{ rental.id }} Room {{ rental.room_number }} / {{ rental.department.name }} / {{ rental.towel_count }} towels
+            </option>
+            {% endfor %}
+          </select>
+          <label class="form-label mb-0">Returned voucher numbers (comma separated)</label>
+          <input class="form-control" type="text" name="voucher_numbers" placeholder="101,102,103" required>
+          <button class="btn btn-success mt-2" type="submit">Close Rental / Refund</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Exchange Towels</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('exchange_towels') }}" class="vstack gap-2">
+          <label class="form-label mb-0">Room number</label>
+          <input class="form-control" type="number" name="room_number" required>
+          <label class="form-label mb-0">Department</label>
+          <select class="form-select" name="department_id" required>
+            {% for dep in departments %}
+            <option value="{{ dep.id }}">{{ dep.name }}</option>
+            {% endfor %}
+          </select>
+          <label class="form-label mb-0">Exchanged towels count</label>
+          <input class="form-control" type="number" min="1" name="towel_count" required>
+          <button class="btn btn-outline-primary mt-2" type="submit">Log Exchange</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header">Open Rentals</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Room</th>
+              <th>Department</th>
+              <th>Towels</th>
+              <th>Deposit</th>
+              <th>Vouchers</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rental in open_rentals %}
+            <tr>
+              <td>{{ rental.id }}</td>
+              <td>{{ rental.room_number }}</td>
+              <td>{{ rental.department.name }}</td>
+              <td>{{ rental.towel_count }}</td>
+              <td>EUR {{ rental.deposit_total }}</td>
+              <td>{{ rental.voucher_numbers()|join(", ") }}</td>
+              <td>{{ rental.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted">No open rentals.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">Department Voucher Status</div>
+      <ul class="list-group list-group-flush">
+        {% for dep in departments %}
+        {% set stats = voucher_status[dep.id] %}
+        <li class="list-group-item">
+          <strong>{{ dep.name }}</strong><br>
+          Total {{ stats.total }} / Available {{ stats.available }} / Assigned {{ stats.assigned }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Admin: Room Ranges</div>
+      <div class="card-body">
+        <form class="row g-2 mb-3" method="post" action="{{ url_for('add_room_range') }}">
+          <div class="col-12">
+            <input class="form-control" type="text" name="label" placeholder="Label (optional)">
+          </div>
+          <div class="col-6">
+            <input class="form-control" type="number" name="start_room" placeholder="Start room" required>
+          </div>
+          <div class="col-6">
+            <input class="form-control" type="number" name="end_room" placeholder="End room" required>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-outline-dark w-100" type="submit">Add Range</button>
+          </div>
+        </form>
+        <ul class="list-group">
+          {% for rr in room_ranges %}
+          <li class="list-group-item">{{ rr.label }}: {{ rr.start_room }} - {{ rr.end_room }}</li>
+          {% else %}
+          <li class="list-group-item text-muted">No ranges configured.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Admin: Voucher Pools</div>
+      <div class="card-body">
+        <form class="row g-2 mb-3" method="post" action="{{ url_for('add_voucher_range') }}">
+          <div class="col-12">
+            <select class="form-select" name="department_id" required>
+              {% for dep in departments %}
+              <option value="{{ dep.id }}">{{ dep.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-6">
+            <input class="form-control" type="number" name="start_number" placeholder="Start voucher" required>
+          </div>
+          <div class="col-6">
+            <input class="form-control" type="number" name="end_number" placeholder="End voucher" required>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-outline-dark w-100" type="submit">Add Voucher Range</button>
+          </div>
+        </form>
+        <div class="voucher-scroll">
+          {% for dep in departments %}
+          <h3 class="h6 mt-2">{{ dep.name }}</h3>
+          <div class="d-flex flex-wrap gap-1">
+            {% for card in list_vouchers_by_department(dep) %}
+              <form method="post" action="{{ url_for('toggle_voucher', voucher_id=card.id) }}">
+                <button
+                  class="btn btn-sm {% if not card.active %}btn-outline-secondary{% elif card.assigned %}btn-warning{% else %}btn-outline-success{% endif %}"
+                  type="submit"
+                  title="Click to toggle active/inactive"
+                >
+                  {{ card.number }}
+                </button>
+              </form>
+            {% else %}
+            <span class="text-muted">No vouchers added yet.</span>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-header">Recent Transaction History</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Time (UTC)</th>
+          <th>Type</th>
+          <th>Room</th>
+          <th>Department</th>
+          <th>Towels</th>
+          <th>Amount</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in tx_logs %}
+        <tr>
+          <td>{{ tx.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+          <td>{{ tx.transaction_type.upper() }}</td>
+          <td>{{ tx.room_number }}</td>
+          <td>{{ tx.department.name }}</td>
+          <td>{{ tx.towel_count }}</td>
+          <td>EUR {{ tx.amount }}</td>
+          <td>{{ tx.details }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">No transactions yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
